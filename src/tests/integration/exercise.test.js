@@ -170,7 +170,13 @@ describe('Exercise API', () => {
 
     it('should fail to delete if exercise is linked to an execution', async () => {
       // Vincular o exercício 1 a uma execução
-      database.executions.push({ id: 1, session_id: 1, exercise_id: 1 });
+      database.sessions[0].executions.push({
+        id: 99,
+        exercise_id: 1,
+        series_completed: 1,
+        repetitions_completed: '1',
+        load_used: '1kg',
+      });
 
       const res = await request(app)
         .delete('/api/v1/exercises/1')

@@ -189,8 +189,63 @@ const database = {
       ],
     },
   ],
-  sessions: [],
-  executions: [],
+  sessions: [
+    {
+      id: 1,
+      student_id: 3, // Aluno João
+      workout_plan_id: 1, // Plano de Hipertrofia - João
+      session_date: '2024-05-01',
+      observations: 'Treino de peito e costas conforme plano.',
+      created_at: new Date('2024-05-01T10:00:00Z'),
+      updated_at: new Date('2024-05-01T10:30:00Z'),
+      executions: [
+        {
+          id: 1,
+          exercise_id: 1, // Supino Reto com Barra
+          series_completed: 4,
+          repetitions_completed: '10,10,9,8',
+          load_used: '45kg',
+          observations: 'Última série com falha assistida.',
+          modifier_ids: [2], // Work Set
+          created_at: new Date('2024-05-01T10:05:00Z'),
+          updated_at: new Date('2024-05-01T10:10:00Z'),
+        },
+        {
+          id: 2,
+          exercise_id: 3, // Remada Curvada
+          series_completed: 3,
+          repetitions_completed: '12,12,10',
+          load_used: '25kg',
+          observations: 'Boa conexão mente-músculo.',
+          modifier_ids: [2], // Work Set
+          created_at: new Date('2024-05-01T10:15:00Z'),
+          updated_at: new Date('2024-05-01T10:20:00Z'),
+        },
+      ],
+    },
+    {
+      id: 2,
+      student_id: 4, // Aluno Maria
+      workout_plan_id: 2, // Plano de Força - Maria
+      session_date: '2024-05-16',
+      observations: 'Treino de pernas pesado.',
+      created_at: new Date('2024-05-16T15:00:00Z'),
+      updated_at: new Date('2024-05-16T15:45:00Z'),
+      executions: [
+        {
+          id: 3,
+          exercise_id: 2, // Agachamento Livre
+          series_completed: 5,
+          repetitions_completed: '5,5,4,4,3',
+          load_used: '75kg',
+          observations: 'Senti a lombar na última série, reduzir peso na próxima.',
+          modifier_ids: [1, 2], // Warm Up Set, Work Set
+          created_at: new Date('2024-05-16T15:10:00Z'),
+          updated_at: new Date('2024-05-16T15:25:00Z'),
+        },
+      ],
+    },
+  ],
 };
 
 const generateId = (entityName) => {

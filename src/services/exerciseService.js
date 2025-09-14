@@ -29,9 +29,13 @@ const exerciseService = {
     await this.getExerciseById(id);
 
     // 2. Verifica vínculos em planos de treino e execuções
-    // Nota: `workoutPlanItems` não está no inMemoryDB.js, mas é adicionado aqui para seguir o ERD e a robustez.
-    const isLinkedToPlan = (database.workoutPlanItems || []).some(item => item.exercise_id === id);
-    const isLinkedToExecution = (database.executions || []).some(exec => exec.exercise_id === id);
+    const isLinkedToPlan = database.workoutPlans.some(plan =>
+      plan.items.some(item => item.exercise_id === id)
+    );
+
+    const isLinkedToExecution = database.sessions.some(session =>
+      session.executions.some(exec => exec.exercise_id === id)
+    );
 
     if (isLinkedToPlan || isLinkedToExecution) {
       throw new AppError(

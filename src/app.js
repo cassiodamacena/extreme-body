@@ -13,6 +13,7 @@ import workoutPlanRoutes from './routes/workoutPlanRoutes.js';
 import modifierRoutes from './routes/modifierRoutes.js';
 import exerciseRoutes from './routes/exerciseRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import sessionRoutes from './routes/sessionRoutes.js';
 
 const app = express();
 
@@ -79,6 +80,7 @@ app.use('/api/v1/users-management', userManagementRoutes); // Adicione a nova ro
 app.use('/api/v1/exercises', exerciseRoutes);
 app.use('/api/v1/modifiers', modifierRoutes);
 app.use('/api/v1/workout-plans', workoutPlanRoutes);
+app.use('/api/v1/sessions', sessionRoutes);
 app.use('/api/v1/auth', authRoutes); // Adicione a rota de autenticação
 
 // Middleware para rotas não encontradas (404)
