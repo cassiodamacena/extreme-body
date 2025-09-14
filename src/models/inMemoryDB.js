@@ -131,7 +131,64 @@ const database = {
       updated_at: new Date(),
     },
   ],
-  workoutPlans: [],
+  workoutPlans: [
+    {
+      id: 1,
+      name: 'Plano de Hipertrofia - João',
+      description: 'Foco em ganho de massa muscular para o aluno João.',
+      instructor_id: 2, // Instrutor Flávio
+      student_id: 3, // Aluno João
+      start_date: '2024-05-01',
+      end_date: '2024-07-31',
+      created_at: new Date('2024-04-28'),
+      updated_at: new Date('2024-04-28'),
+      items: [
+        {
+          id: 1,
+          exercise_id: 1, // Supino Reto com Barra
+          series_count: 4,
+          repetitions_expected: '8-12',
+          load_suggested: '50kg',
+          observations: 'Priorizar a técnica, cadência controlada.',
+          order_index: 1,
+          modifier_ids: [2], // Work Set
+        },
+        {
+          id: 2,
+          exercise_id: 3, // Remada Curvada
+          series_count: 3,
+          repetitions_expected: '10-15',
+          load_suggested: '30kg',
+          observations: 'Contração máxima no topo do movimento.',
+          order_index: 2,
+          modifier_ids: [2], // Work Set
+        },
+      ],
+    },
+    {
+      id: 2,
+      name: 'Plano de Força - Maria',
+      description: 'Foco em aumento de força máxima para a aluna Maria.',
+      instructor_id: 2, // Instrutor Flávio
+      student_id: 4, // Aluno Maria
+      start_date: '2024-05-15',
+      end_date: '2024-08-15',
+      created_at: new Date('2024-05-10'),
+      updated_at: new Date('2024-05-10'),
+      items: [
+        {
+          id: 3,
+          exercise_id: 2, // Agachamento Livre
+          series_count: 5,
+          repetitions_expected: '3-5',
+          load_suggested: '80kg',
+          observations: 'Progressão de carga semanal, falha assistida na última série.',
+          order_index: 1,
+          modifier_ids: [1, 2], // Warm Up Set, Work Set
+        },
+      ],
+    },
+  ],
   sessions: [],
   executions: [],
 };

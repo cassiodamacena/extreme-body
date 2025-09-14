@@ -484,6 +484,10 @@ describe('User Management API', () => {
       // Adicionar uma sessão para o Aluno João (id: 3)
       database.sessions.push({ id: 1, student_id: ALUNO_JOAO_ID, session_date: '2024-01-01' });
 
+      // Para isolar este teste, removemos os planos de treino pré-existentes do Aluno João.
+      // A verificação de dependência no serviço para no primeiro vínculo que encontra (neste caso, os planos de treino).
+      database.workoutPlans = database.workoutPlans.filter(p => p.student_id !== ALUNO_JOAO_ID);
+
       const res = await request(app)
         .delete(`/api/v1/users-management/${ALUNO_JOAO_ID}`) // Aluno João
         .set('Authorization', `Bearer ${adminToken}`);
