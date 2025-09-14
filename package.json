@@ -7,8 +7,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --detectOpenHandles"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --runInBand",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/unit",
+    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/integration",
+    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/e2e"
   },
   "keywords": [],
   "author": "",

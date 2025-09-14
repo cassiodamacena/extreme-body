@@ -34,11 +34,15 @@ const fileFormat = winston.format.combine(
   winston.format.json(),
 );
 
-const transports = [
-  new winston.transports.Console({ format: consoleFormat }),
+const transports = [  
   new winston.transports.File({ filename: 'logs/error.log', level: 'error', format: fileFormat }),
   new winston.transports.File({ filename: 'logs/combined.log', format: fileFormat }),
 ];
+
+// Adiciona o transporte de console apenas se não estiver em ambiente de teste.
+if (process.env.NODE_ENV !== 'test') {
+  transports.push(new winston.transports.Console({ format: consoleFormat }));
+}
 
 const logger = winston.createLogger({
   level: level(),

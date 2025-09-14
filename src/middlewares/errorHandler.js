@@ -2,8 +2,11 @@ import { AppError } from '../utils/AppError.js';
 import logger from '../config/logger.js';
 
 const errorHandler = (err, req, res, next) => {
-  // Loga o erro com o stack trace para depuração completa
-  logger.error(err.message, { stack: err.stack, path: req.originalUrl, method: req.method });
+  // Apenas loga o erro se não estiver em ambiente de teste OU se for um erro não operacional (inesperado)
+  // Isso mantém o output do teste limpo para erros esperados (4xx).
+  if (process.env.NODE_ENV !== 'test' || !err.isOperational) {
+    logger.error(err.message, { stack: err.stack, path: req.originalUrl, method: req.method });
+  }
 
   if (err.isOperational) {
     // Padroniza status para 'error' em autenticação/autorização

@@ -22,8 +22,19 @@ Este é o backend para o sistema de gestão de treinos de academia.
 
 ## Testes
 
+O projeto adota uma estratégia de testes em múltiplas camadas para garantir a qualidade e a estabilidade do código:
+
+- **Testes Unitários:** Focam em funções e lógicas de negócio isoladas. São rápidos e ideais para validar algoritmos complexos.
+- **Testes de Integração:** Verificam a interação entre as diferentes camadas da aplicação (Controllers, Services, Models) em memória, sem a necessidade de um servidor HTTP real.
+- **Testes End-to-End (E2E):** Simulam o comportamento de um cliente real, iniciando um servidor HTTP e fazendo requisições de rede para validar os fluxos completos da API.
+
+### Comandos de Teste
+
 *   **Executar todos os testes:** `npm test`
-*   **Executar testes em modo watch:** `npm run test:watch`
+*   **Executar apenas os testes unitários:** `npm run test:unit`
+*   **Executar apenas os testes de integração:** `npm run test:integration`
+*   **Executar apenas os testes End-to-End:** `npm run test:e2e`
+*   **Executar todos os testes em modo watch:** `npm run test:watch`
 
 ## Documentação da API
 
@@ -54,7 +65,8 @@ A API oferece um conjunto completo de funcionalidades para a gestão de uma acad
 │   ├── services/             # Lógica de negócio (business rules)
 │   ├── tests/                # Testes da aplicação
 │   │   ├── unit/
-│   │   └── integration/
+│   │   ├── integration/
+│   │   └── e2e/
 │   ├── utils/                # Funções utilitárias (erros, hashing, JWT)
 │   ├── app.js                # Configuração principal do Express
 │   └── server.js             # Ponto de entrada do servidor
