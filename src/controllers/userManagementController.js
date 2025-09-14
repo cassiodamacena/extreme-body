@@ -5,7 +5,7 @@ const userManagementController = {
   async createStudent(req, res, next) {
     try {
       const { user_data, profile_data } = req.body;
-      const newUser = await userService.createUser({ ...user_data, profileData: profile_data }, 'Aluno');
+      const newUser = await userService.createUser(user_data, profile_data, 'Aluno');
       res.status(201).json({
         status: 'success',
         data: {
@@ -20,7 +20,7 @@ const userManagementController = {
   async createInstructor(req, res, next) {
     try {
       const { user_data, profile_data } = req.body;
-      const newUser = await userService.createUser({ ...user_data, profileData: profile_data }, 'Instrutor');
+      const newUser = await userService.createUser(user_data, profile_data, 'Instrutor');
       res.status(201).json({
         status: 'success',
         data: {
@@ -35,7 +35,7 @@ const userManagementController = {
   async getAllUsers(req, res, next) {
     try {
       const filter = req.query; // Para filtrar por tipo, status, etc.
-      const users = await userService.getAllUsers(req.user.id, req.user.tipo, filter);
+      const users = await userService.getAllUsers(req.user, filter);
       res.status(200).json({
         status: 'success',
         results: users.length,
@@ -51,7 +51,7 @@ const userManagementController = {
   async getUserById(req, res, next) {
     try {
       const { id } = req.params;
-      const user = await userService.getUserById(parseInt(id), req.user.id, req.user.tipo);
+      const user = await userService.getUserById(parseInt(id), req.user);
       res.status(200).json({
         status: 'success',
         data: {
@@ -67,7 +67,7 @@ const userManagementController = {
     try {
       const { id } = req.params;
       const { user_data, profile_data } = req.body;
-      const updatedUser = await userService.updateUser(parseInt(id), { ...user_data, profileData: profile_data }, req.user.id, req.user.tipo);
+      const updatedUser = await userService.updateUser(parseInt(id), { user_data, profile_data }, req.user);
       res.status(200).json({
         status: 'success',
         data: {
@@ -82,7 +82,7 @@ const userManagementController = {
   async deleteUser(req, res, next) {
     try {
       const { id } = req.params;
-      await userService.deleteUser(parseInt(id), req.user.id, req.user.tipo);
+      await userService.deleteUser(parseInt(id), req.user);
       res.status(204).json({
         status: 'success',
         data: null,

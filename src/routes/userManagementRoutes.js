@@ -42,8 +42,16 @@ const createInstructorSchema = Joi.object({
 });
 
 const updateUserSchema = Joi.object({
-  user_data: userBaseSchema.fork(['documento', 'email', 'senha'], schema => schema.optional()).optional(), // Makes document, email, senha optional for update
-  profile_data: Joi.object().optional(), // Specific profile validation will be done in service
+  user_data: Joi.object({
+    documento: Joi.string().pattern(/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}$/),
+    nome_completo: Joi.string().min(3).max(100),
+    email: Joi.string().email(),
+    senha: Joi.string().min(8),
+    status: Joi.string().valid('Ativo', 'Inativo'),
+  }).optional(),
+  profile_data: Joi.object().unknown(true).optional(), // Permite qualquer campo dentro do profile_data
+}).min(1).messages({ // Garante que o corpo da requisição não esteja vazio
+  'object.min': 'O corpo da requisição deve conter pelo menos user_data ou profile_data.'
 });
 
 /**
@@ -395,7 +403,9 @@ router.get(
 router.get(
   '/:id',
   authenticate,
-  validate(Joi.object({ id: Joi.number().integer().positive().required() })),
+  validate({
+    params: Joi.object({ id: Joi.number().integer().positive().required() }),
+  }),
   userManagementController.getUserById
 );
 
@@ -485,8 +495,10 @@ router.get(
 router.put(
   '/:id',
   authenticate,
-  validate(Joi.object({ id: Joi.number().integer().positive().required() })), // Validate ID in params
-  validate(updateUserSchema), // Validate body
+  validate({
+    params: Joi.object({ id: Joi.number().integer().positive().required() }),
+    body: updateUserSchema,
+  }),
   userManagementController.updateUser
 );
 
@@ -522,7 +534,9 @@ router.put(
 router.delete(
   '/:id',
   authenticate,
-  validate(Joi.object({ id: Joi.number().integer().positive().required() })),
+  validate({
+    params: Joi.object({ id: Joi.number().integer().positive().required() }),
+  }),
   userManagementController.deleteUser
 );
 

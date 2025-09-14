@@ -3,33 +3,35 @@ import app from '../../app.js';
 import { database } from '../../models/inMemoryDB.js';
 import { generateToken } from '../../utils/jwtUtils.js';
 
+// IDs dos usuários de teste para clareza
+const ADMIN_ID = 1;
+const INSTRUTOR_ID = 2;
+const ALUNO_JOAO_ID = 3;
+const ALUNO_MARIA_ID = 4;
+
 // Helpers para gerar tokens de teste
 const generateTestToken = (id, type) => {
   return generateToken({ id, tipo: type });
 };
 
-const adminToken = generateTestToken(1, 'Admin');
-const instrutorToken = generateTestToken(2, 'Instrutor');
-const alunoToken = generateTestToken(3, 'Aluno');
-const outroAlunoToken = generateTestToken(4, 'Aluno'); // Aluno Maria
+const adminToken = generateTestToken(ADMIN_ID, 'Admin');
+const instrutorToken = generateTestToken(INSTRUTOR_ID, 'Instrutor');
+const alunoToken = generateTestToken(ALUNO_JOAO_ID, 'Aluno');
+const outroAlunoToken = generateTestToken(ALUNO_MARIA_ID, 'Aluno'); // Aluno Maria
 
 describe('User Management API', () => {
-  let initialUsers;
-  let initialStudentProfiles;
-  let initialInstructorProfiles;
+  let initialDatabaseState;
 
   beforeEach(() => {
     // Salvar o estado inicial do banco de dados antes de cada teste
-    initialUsers = JSON.parse(JSON.stringify(database.users));
-    initialStudentProfiles = JSON.parse(JSON.stringify(database.studentProfiles));
-    initialInstructorProfiles = JSON.parse(JSON.stringify(database.instructorProfiles));
+    initialDatabaseState = JSON.parse(JSON.stringify(database));
   });
 
   afterEach(() => {
-    // Restaurar o banco de dados após cada teste
-    database.users = initialUsers;
-    database.studentProfiles = initialStudentProfiles;
-    database.instructorProfiles = initialInstructorProfiles;
+    // Restaura TODAS as tabelas para o estado inicial para garantir isolamento total dos testes.
+    Object.keys(initialDatabaseState).forEach(key => {
+      database[key] = JSON.parse(JSON.stringify(initialDatabaseState[key]));
+    });
   });
 
   // Testes para POST /api/v1/users-management/students
@@ -49,7 +51,7 @@ describe('User Management API', () => {
             height: 180,
             weight: 80,
             date_of_birth: '1995-01-01',
-            instructor_id: 2, // Vinculando ao instrutor Flávio
+            instructor_id: INSTRUTOR_ID, // Vinculando ao instrutor Flávio
           },
         });
       expect(res.statusCode).toEqual(201);
@@ -75,7 +77,7 @@ describe('User Management API', () => {
             height: 170,
             weight: 65,
             date_of_birth: '2000-05-10',
-            instructor_id: 2, // Vinculando a si mesmo (Instrutor Flávio)
+            instructor_id: INSTRUTOR_ID, // Vinculando a si mesmo (Instrutor Flávio)
           },
         });
       expect(res.statusCode).toEqual(201);
@@ -101,7 +103,7 @@ describe('User Management API', () => {
           },
         });
       expect(res.statusCode).toEqual(403);
-      expect(res.body.status).toEqual('fail');
+      expect(res.body.status).toEqual('error');
     });
 
     it('should return 400 for invalid student data', async () => {
@@ -187,7 +189,7 @@ describe('User Management API', () => {
           },
         });
       expect(res.statusCode).toEqual(403);
-      expect(res.body.status).toEqual('fail');
+      expect(res.body.status).toEqual('error');
     });
 
     it('should return 400 for invalid instructor data (missing CREF)', async () => {
@@ -208,7 +210,7 @@ describe('User Management API', () => {
         });
       expect(res.statusCode).toEqual(400);
       expect(res.body.status).toEqual('fail');
-      expect(res.body.message).toContain('cref" is required');
+      expect(res.body.message).toContain('cref is required');
     });
   });
 
@@ -232,10 +234,10 @@ describe('User Management API', () => {
         .set('Authorization', `Bearer ${instrutorToken}`);
       expect(res.statusCode).toEqual(200);
       expect(res.body.status).toEqual('success');
-      expect(res.body.results).toEqual(3); // Instrutor Flávio + Aluno João + Aluno Maria
-      expect(res.body.data.users.some(u => u.id === 2 && u.tipo === 'Instrutor')).toBeTruthy();
-      expect(res.body.data.users.some(u => u.id === 3 && u.tipo === 'Aluno')).toBeTruthy();
-      expect(res.body.data.users.some(u => u.id === 4 && u.tipo === 'Aluno')).toBeTruthy();
+      expect(res.body.results).toEqual(3); // Instrutor Flávio (ID 2) + Aluno João (ID 3) + Aluno Maria (ID 4)
+      expect(res.body.data.users.some(u => u.id === INSTRUTOR_ID && u.tipo === 'Instrutor')).toBeTruthy();
+      expect(res.body.data.users.some(u => u.id === ALUNO_JOAO_ID && u.tipo === 'Aluno')).toBeTruthy();
+      expect(res.body.data.users.some(u => u.id === ALUNO_MARIA_ID && u.tipo === 'Aluno')).toBeTruthy();
       expect(res.body.data.users.some(u => u.id === 1 && u.tipo === 'Admin')).toBeFalsy(); // Não deve ver Admin
     });
 
@@ -246,7 +248,7 @@ describe('User Management API', () => {
       expect(res.statusCode).toEqual(200);
       expect(res.body.status).toEqual('success');
       expect(res.body.results).toEqual(1);
-      expect(res.body.data.users[0].id).toEqual(3);
+      expect(res.body.data.users[0].id).toEqual(ALUNO_JOAO_ID);
       expect(res.body.data.users[0].tipo).toEqual('Aluno');
     });
   });
@@ -255,33 +257,33 @@ describe('User Management API', () => {
   describe('GET /api/v1/users-management/:id', () => {
     it('should allow Admin to get any user by ID', async () => {
       const res = await request(app)
-        .get(`/api/v1/users-management/${alunoToken.id}`) // Assuming alunoToken.id is 3 for Aluno João
+        .get(`/api/v1/users-management/${ALUNO_JOAO_ID}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(res.statusCode).toEqual(200);
       expect(res.body.status).toEqual('success');
-      expect(res.body.data.user.id).toEqual(3);
+      expect(res.body.data.user.id).toEqual(ALUNO_JOAO_ID);
       expect(res.body.data.user.tipo).toEqual('Aluno');
       expect(res.body.data.user.profile).toHaveProperty('height');
     });
 
     it('should allow Instrutor to get their own data by ID', async () => {
       const res = await request(app)
-        .get(`/api/v1/users-management/${instrutorToken.id}`) // Assuming instrutorToken.id is 2
+        .get(`/api/v1/users-management/${INSTRUTOR_ID}`)
         .set('Authorization', `Bearer ${instrutorToken}`);
       expect(res.statusCode).toEqual(200);
       expect(res.body.status).toEqual('success');
-      expect(res.body.data.user.id).toEqual(2);
+      expect(res.body.data.user.id).toEqual(INSTRUTOR_ID);
       expect(res.body.data.user.tipo).toEqual('Instrutor');
       expect(res.body.data.user.profile).toHaveProperty('cref');
     });
 
     it('should allow Instrutor to get their student by ID', async () => {
       const res = await request(app)
-        .get(`/api/v1/users-management/${alunoToken.id}`) // Assuming alunoToken.id is 3 (student of instrutor 2)
+        .get(`/api/v1/users-management/${ALUNO_JOAO_ID}`)
         .set('Authorization', `Bearer ${instrutorToken}`);
       expect(res.statusCode).toEqual(200);
       expect(res.body.status).toEqual('success');
-      expect(res.body.data.user.id).toEqual(3);
+      expect(res.body.data.user.id).toEqual(ALUNO_JOAO_ID);
       expect(res.body.data.user.tipo).toEqual('Aluno');
     });
 
@@ -294,15 +296,15 @@ describe('User Management API', () => {
         .get(`/api/v1/users-management/${otherInstrutor.id}`)
         .set('Authorization', `Bearer ${instrutorToken}`);
       expect(res.statusCode).toEqual(403);
-      expect(res.body.status).toEqual('fail');
+      expect(res.body.status).toEqual('error');
     });
 
     it('should not allow Aluno to get another user by ID', async () => {
       const res = await request(app)
-        .get(`/api/v1/users-management/${instrutorToken.id}`)
+        .get(`/api/v1/users-management/${INSTRUTOR_ID}`)
         .set('Authorization', `Bearer ${alunoToken}`);
       expect(res.statusCode).toEqual(403);
-      expect(res.body.status).toEqual('fail');
+      expect(res.body.status).toEqual('error');
     });
 
     it('should return 404 for non-existent user ID', async () => {
@@ -319,7 +321,7 @@ describe('User Management API', () => {
   describe('PUT /api/v1/users-management/:id', () => {
     it('should allow Admin to update any user', async () => {
       const res = await request(app)
-        .put(`/api/v1/users-management/${alunoToken.id}`) // Aluno João
+        .put(`/api/v1/users-management/${ALUNO_JOAO_ID}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           user_data: { nome_completo: 'João da Silva Atualizado' },
@@ -329,13 +331,13 @@ describe('User Management API', () => {
       expect(res.body.status).toEqual('success');
       expect(res.body.data.user.nome_completo).toEqual('João da Silva Atualizado');
       // Precisa buscar o perfil separadamente para verificar a atualização do profile_data
-      const updatedStudentProfile = database.studentProfiles.find(p => p.user_id === 3);
+      const updatedStudentProfile = database.studentProfiles.find(p => p.user_id === ALUNO_JOAO_ID);
       expect(updatedStudentProfile.height).toEqual(178);
     });
 
     it('should allow Instrutor to update their own profile', async () => {
       const res = await request(app)
-        .put(`/api/v1/users-management/${instrutorToken.id}`) // Instrutor Flávio
+        .put(`/api/v1/users-management/${INSTRUTOR_ID}`)
         .set('Authorization', `Bearer ${instrutorToken}`)
         .send({
           user_data: { email: 'flavio.atualizado@app.com' },
@@ -344,13 +346,13 @@ describe('User Management API', () => {
       expect(res.statusCode).toEqual(200);
       expect(res.body.status).toEqual('success');
       expect(res.body.data.user.email).toEqual('flavio.atualizado@app.com');
-      const updatedInstructorProfile = database.instructorProfiles.find(p => p.user_id === 2);
+      const updatedInstructorProfile = database.instructorProfiles.find(p => p.user_id === INSTRUTOR_ID);
       expect(updatedInstructorProfile.specialization).toEqual('Powerlifting');
     });
 
     it('should allow Instrutor to update their student profile', async () => {
       const res = await request(app)
-        .put(`/api/v1/users-management/${alunoToken.id}`) // Aluno João (student of instrutor 2)
+        .put(`/api/v1/users-management/${ALUNO_JOAO_ID}`)
         .set('Authorization', `Bearer ${instrutorToken}`)
         .send({
           user_data: { status: 'Inativo' }, // Instrutor pode mudar status do aluno
@@ -359,13 +361,13 @@ describe('User Management API', () => {
       expect(res.statusCode).toEqual(200);
       expect(res.body.status).toEqual('success');
       expect(res.body.data.user.status).toEqual('Inativo');
-      const updatedStudentProfile = database.studentProfiles.find(p => p.user_id === 3);
+      const updatedStudentProfile = database.studentProfiles.find(p => p.user_id === ALUNO_JOAO_ID);
       expect(updatedStudentProfile.weight).toEqual(72);
     });
 
     it('should allow Aluno to update their own profile', async () => {
       const res = await request(app)
-        .put(`/api/v1/users-management/${alunoToken.id}`) // Aluno João
+        .put(`/api/v1/users-management/${ALUNO_JOAO_ID}`)
         .set('Authorization', `Bearer ${alunoToken}`)
         .send({
           user_data: { nome_completo: 'João Atualizado' },
@@ -374,19 +376,19 @@ describe('User Management API', () => {
       expect(res.statusCode).toEqual(200);
       expect(res.body.status).toEqual('success');
       expect(res.body.data.user.nome_completo).toEqual('João Atualizado');
-      const updatedStudentProfile = database.studentProfiles.find(p => p.user_id === 3);
+      const updatedStudentProfile = database.studentProfiles.find(p => p.user_id === ALUNO_JOAO_ID);
       expect(updatedStudentProfile.height).toEqual(176);
     });
 
     it('should not allow Aluno to update their own type or status', async () => {
       const res = await request(app)
-        .put(`/api/v1/users-management/${alunoToken.id}`) // Aluno João
+        .put(`/api/v1/users-management/${ALUNO_JOAO_ID}`)
         .set('Authorization', `Bearer ${alunoToken}`)
         .send({
           user_data: { tipo: 'Admin' },
         });
       expect(res.statusCode).toEqual(403);
-      expect(res.body.status).toEqual('fail');
+      expect(res.body.status).toEqual('error');
       expect(res.body.message).toEqual('Você não pode alterar o tipo ou status do seu usuário.');
     });
 
@@ -400,7 +402,7 @@ describe('User Management API', () => {
         .set('Authorization', `Bearer ${instrutorToken}`)
         .send({ user_data: { nome_completo: 'Changed' } });
       expect(res.statusCode).toEqual(403);
-      expect(res.body.status).toEqual('fail');
+      expect(res.body.status).toEqual('error');
     });
 
     it('should return 404 for non-existent user ID on update', async () => {
@@ -425,7 +427,7 @@ describe('User Management API', () => {
           user_data: {
             documento: '555.555.555-00', nome_completo: 'Temp Student', email: 'temp@test.com', senha: 'Password123!',
           },
-          profile_data: { height: 170, weight: 60, date_of_birth: '1990-01-01', instructor_id: 2 },
+          profile_data: { height: 170, weight: 60, date_of_birth: '1990-01-01', instructor_id: INSTRUTOR_ID },
         });
       const studentToDeleteId = newUserRes.body.data.user.id;
 
@@ -446,7 +448,7 @@ describe('User Management API', () => {
           user_data: {
             documento: '555.555.555-01', nome_completo: 'Temp Student 2', email: 'temp2@test.com', senha: 'Password123!',
           },
-          profile_data: { height: 170, weight: 60, date_of_birth: '1990-01-01', instructor_id: 2 }, // Aluno do instrutor 2
+          profile_data: { height: 170, weight: 60, date_of_birth: '1990-01-01', instructor_id: INSTRUTOR_ID }, // Aluno do instrutor 2
         });
       const studentToDeleteId = newUserRes.body.data.user.id;
 
@@ -460,18 +462,18 @@ describe('User Management API', () => {
 
     it('should not allow Instrutor to delete another Instrutor', async () => {
       const res = await request(app)
-        .delete(`/api/v1/users-management/${adminToken.id}`) // Tentar deletar o Admin
+        .delete(`/api/v1/users-management/${ADMIN_ID}`) // Tentar deletar o Admin
         .set('Authorization', `Bearer ${instrutorToken}`);
       expect(res.statusCode).toEqual(403);
-      expect(res.body.status).toEqual('fail');
+      expect(res.body.status).toEqual('error');
     });
 
     it('should not allow deletion if user has associated workout plans', async () => {
       // Adicionar um plano de treino para o Aluno João (id: 3)
-      database.workoutPlans.push({ id: 1, student_id: 3, instructor_id: 2, name: "Plano do João" });
+      database.workoutPlans.push({ id: 1, student_id: ALUNO_JOAO_ID, instructor_id: INSTRUTOR_ID, name: "Plano do João" });
 
       const res = await request(app)
-        .delete(`/api/v1/users-management/${alunoToken.id}`) // Aluno João
+        .delete(`/api/v1/users-management/${ALUNO_JOAO_ID}`) // Aluno João
         .set('Authorization', `Bearer ${adminToken}`);
       expect(res.statusCode).toEqual(400);
       expect(res.body.status).toEqual('fail');
@@ -480,10 +482,10 @@ describe('User Management API', () => {
 
     it('should not allow deletion if user has associated sessions', async () => {
       // Adicionar uma sessão para o Aluno João (id: 3)
-      database.sessions.push({ id: 1, student_id: 3, session_date: '2024-01-01' });
+      database.sessions.push({ id: 1, student_id: ALUNO_JOAO_ID, session_date: '2024-01-01' });
 
       const res = await request(app)
-        .delete(`/api/v1/users-management/${alunoToken.id}`) // Aluno João
+        .delete(`/api/v1/users-management/${ALUNO_JOAO_ID}`) // Aluno João
         .set('Authorization', `Bearer ${adminToken}`);
       expect(res.statusCode).toEqual(400);
       expect(res.body.status).toEqual('fail');

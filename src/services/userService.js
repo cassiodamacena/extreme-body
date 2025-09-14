@@ -1,207 +1,189 @@
 import { userModel } from '../models/userModel.js';
-import { studentProfileModel } from '../models/studentProfileModel.js';
-import { instructorProfileModel } from '../models/instructorProfileModel.js';
+import { database } from '../models/inMemoryDB.js';
 import { AppError } from '../utils/AppError.js';
-import { database } from '../models/inMemoryDB.js'; // Para checagem de vínculos
+
+/**
+ * Helper para buscar o perfil de um usuário
+ */
+const getProfile = (user) => {
+  if (!user) return null;
+  if (user.tipo === 'Aluno') {
+    return database.studentProfiles.find(p => p.user_id === user.id) || null;
+  }
+  if (user.tipo === 'Instrutor') {
+    return database.instructorProfiles.find(p => p.user_id === user.id) || null;
+  }
+  return null;
+};
+
+/**
+ * Helper para verificar se um instrutor é responsável por um aluno
+ */
+const isInstructorOfStudent = (instructorId, studentId) => {
+  const studentProfile = database.studentProfiles.find(p => p.user_id === studentId);
+  return studentProfile?.instructor_id === instructorId;
+};
+
 
 const userService = {
-  async createUser(userData, userType) {
+  async createUser(userData, profileData, userType) {
+    const newUser = await userModel.create({ ...userData, tipo: userType });
+
     if (userType === 'Aluno') {
-      const { profileData, ...userBaseData } = userData;
-      const newUser = await userModel.create({ ...userBaseData, tipo: 'Aluno' });
-      await studentProfileModel.create({ ...profileData, user_id: newUser.id });
-      return newUser;
+      database.studentProfiles.push({ user_id: newUser.id, ...profileData });
     } else if (userType === 'Instrutor') {
-      const { profileData, ...userBaseData } = userData;
-      // Valida CREF antes de criar o perfil
-      if (!profileData || !profileData.cref) {
-        throw new AppError('CREF é obrigatório para instrutores.', 400);
-      }
-      const newUser = await userModel.create({ ...userBaseData, tipo: 'Instrutor' });
-      await instructorProfileModel.create({ ...profileData, user_id: newUser.id });
-      return newUser;
-    } else if (userType === 'Admin') {
-      const newUser = await userModel.create({ ...userData, tipo: 'Admin' });
-      return newUser;
-    } else {
-      throw new AppError('Tipo de usuário inválido.', 400);
+      database.instructorProfiles.push({ user_id: newUser.id, ...profileData });
     }
+
+    newUser.profile = getProfile(newUser);
+    return newUser;
   },
 
-  async getAllUsers(requestingUserId, requestingUserType, filter = {}) {
-    let users = await userModel.findAll(filter);
+  async getAllUsers(requestingUser, filters) {
+    let users;
 
-    // Complementa com dados de perfil
-    users = await Promise.all(users.map(async (user) => {
-      let profile = null;
-      if (user.tipo === 'Aluno') {
-        profile = await studentProfileModel.findByUserId(user.id);
-      } else if (user.tipo === 'Instrutor') {
-        profile = await instructorProfileModel.findByUserId(user.id);
-      }
-      return { ...user, profile };
+    switch (requestingUser.tipo) {
+      case 'Admin':
+        users = await userModel.findAll(filters);
+        break;
+      case 'Instrutor':
+        const allUsers = await userModel.findAll(filters);
+        users = allUsers.filter(user =>
+          user.id === requestingUser.id || // O próprio instrutor
+          (user.tipo === 'Aluno' && isInstructorOfStudent(requestingUser.id, user.id)) // Seus alunos
+        );
+        break;
+      case 'Aluno':
+        users = [requestingUser]; // Aluno só pode ver a si mesmo
+        break;
+      default:
+        users = [];
+    }
+
+    // Adiciona o perfil a cada usuário
+    return users.map(user => ({
+      ...user,
+      profile: getProfile(user),
     }));
-
-    // Lógica de autorização granular
-    if (requestingUserType === 'Admin') {
-      return users; // Admin vê todos
-    } else if (requestingUserType === 'Instrutor') {
-      // Instrutor vê a si mesmo e seus alunos
-      const instructorProfile = await instructorProfileModel.findByUserId(requestingUserId);
-      if (!instructorProfile) throw new AppError('Perfil de instrutor não encontrado.', 404);
-
-      const students = users.filter(user =>
-        user.tipo === 'Aluno' && user.profile && user.profile.instructor_id === requestingUserId
-      );
-      const self = users.filter(user => user.id === requestingUserId);
-      return [...self, ...students];
-    } else if (requestingUserType === 'Aluno') {
-      // Aluno vê apenas a si mesmo
-      return users.filter(user => user.id === requestingUserId);
-    }
-    return [];
   },
 
-  async getUserById(id, requestingUserId, requestingUserType) {
-    const user = await userModel.findById(id);
-    if (!user) {
+  async getUserById(targetId, requestingUser) {
+    const targetUser = await userModel.findById(targetId);
+    if (!targetUser) {
       throw new AppError('Usuário não encontrado.', 404);
     }
 
-    let profile = null;
-    if (user.tipo === 'Aluno') {
-      profile = await studentProfileModel.findByUserId(user.id);
-    } else if (user.tipo === 'Instrutor') {
-      profile = await instructorProfileModel.findByUserId(user.id);
-    }
+    // Verificação de permissão
+    const isAdmin = requestingUser.tipo === 'Admin';
+    const isOwner = requestingUser.id === targetUser.id;
+    const isMyStudent = requestingUser.tipo === 'Instrutor' &&
+                        targetUser.tipo === 'Aluno' &&
+                        isInstructorOfStudent(requestingUser.id, targetUser.id);
 
-    const fullUser = { ...user, profile };
-
-    // Lógica de autorização granular para leitura individual
-    if (requestingUserType === 'Admin') {
-      return fullUser;
-    } else if (requestingUserType === 'Instrutor') {
-      if (user.id === requestingUserId) { // Instrutor pode ver a si mesmo
-        return fullUser;
-      }
-      // Instrutor pode ver seus alunos
-      if (user.tipo === 'Aluno' && user.profile && user.profile.instructor_id === requestingUserId) {
-        return fullUser;
-      }
-      throw new AppError('Você não tem permissão para visualizar este usuário.', 403);
-    } else if (requestingUserType === 'Aluno') {
-      if (user.id === requestingUserId) { // Aluno pode ver a si mesmo
-        return fullUser;
-      }
+    if (!isAdmin && !isOwner && !isMyStudent) {
       throw new AppError('Você não tem permissão para visualizar este usuário.', 403);
     }
 
-    throw new AppError('Você não tem permissão para visualizar este usuário.', 403);
+    targetUser.profile = getProfile(targetUser);
+    return targetUser;
   },
 
-  async updateUser(id, updateData, requestingUserId, requestingUserType) {
-    const user = await userModel.findById(id);
-    if (!user) {
+  async updateUser(targetId, updateData, requestingUser) {
+    const targetUser = await userModel.findById(targetId);
+    if (!targetUser) {
       throw new AppError('Usuário não encontrado.', 404);
     }
 
-    // Lógica de autorização granular para atualização
-    if (requestingUserType === 'Admin') {
-      // Admin pode atualizar qualquer um
-    } else if (requestingUserType === 'Instrutor') {
-      if (user.id === requestingUserId) { // Instrutor pode atualizar a si mesmo
-        // Permite atualizar dados básicos do usuário e o perfil do instrutor
-        if (updateData.profileData) {
-          await instructorProfileModel.update(user.id, updateData.profileData);
-          delete updateData.profileData;
-        }
-      } else if (user.tipo === 'Aluno' && user.profile && user.profile.instructor_id === requestingUserId) {
-        // Instrutor pode atualizar seus alunos
-        // Permite atualizar dados básicos do usuário e o perfil do aluno
-        if (updateData.profileData) {
-          await studentProfileModel.update(user.id, updateData.profileData);
-          delete updateData.profileData;
-        }
-      } else {
-        throw new AppError('Você não tem permissão para atualizar este usuário.', 403);
-      }
-    } else if (requestingUserType === 'Aluno') {
-      if (user.id === requestingUserId) { // Aluno pode atualizar a si mesmo
-        // Permite atualizar dados básicos do usuário (exceto tipo e status) e o perfil do aluno
-        if (updateData.tipo || updateData.status) {
-          throw new AppError('Você não pode alterar o tipo ou status do seu usuário.', 403);
-        }
-        if (updateData.profileData) {
-          await studentProfileModel.update(user.id, updateData.profileData);
-          delete updateData.profileData;
-        }
-      } else {
-        throw new AppError('Você não tem permissão para atualizar este usuário.', 403);
-      }
-    } else {
+    // Verificação de permissão
+    const isAdmin = requestingUser.tipo === 'Admin';
+    const isOwner = requestingUser.id === targetUser.id;
+    const isMyStudent = requestingUser.tipo === 'Instrutor' &&
+                        targetUser.tipo === 'Aluno' &&
+                        isInstructorOfStudent(requestingUser.id, targetUser.id);
+
+    if (!isAdmin && !isOwner && !isMyStudent) {
       throw new AppError('Você não tem permissão para atualizar este usuário.', 403);
     }
 
-    return await userModel.update(id, updateData);
+    // Regras de negócio para atualização
+    if (updateData.user_data) {
+      // Alunos não podem alterar seu próprio tipo ou status
+      if (requestingUser.tipo === 'Aluno' && (updateData.user_data.tipo || updateData.user_data.status)) {
+        throw new AppError('Você não pode alterar o tipo ou status do seu usuário.', 403);
+      }
+      // Instrutores não podem alterar o tipo de outros usuários
+      if (requestingUser.tipo === 'Instrutor' && updateData.user_data.tipo && !isOwner) {
+         throw new AppError('Você não tem permissão para alterar o tipo de outros usuários.', 403);
+      }
+    }
+
+    // Atualiza dados do usuário (tabela users)
+    if (updateData.user_data && Object.keys(updateData.user_data).length > 0) {
+      await userModel.update(targetId, updateData.user_data);
+    }
+
+    // Atualiza dados do perfil (tabelas studentProfiles/instructorProfiles)
+    if (updateData.profile_data && Object.keys(updateData.profile_data).length > 0) {
+      if (targetUser.tipo === 'Aluno') {
+        const profileIndex = database.studentProfiles.findIndex(p => p.user_id === targetId);
+        if (profileIndex !== -1) {
+          Object.assign(database.studentProfiles[profileIndex], updateData.profile_data);
+        }
+      } else if (targetUser.tipo === 'Instrutor') {
+        const profileIndex = database.instructorProfiles.findIndex(p => p.user_id === targetId);
+        if (profileIndex !== -1) {
+          Object.assign(database.instructorProfiles[profileIndex], updateData.profile_data);
+        }
+      }
+    }
+
+    // Retorna o usuário completo e atualizado
+    return this.getUserById(targetId, requestingUser);
   },
 
-  async deleteUser(id, requestingUserId, requestingUserType) {
-    const user = await userModel.findById(id);
-    if (!user) {
+  async deleteUser(targetId, requestingUser) {
+    const targetUser = await userModel.findById(targetId);
+    if (!targetUser) {
       throw new AppError('Usuário não encontrado.', 404);
     }
 
-    // Lógica de autorização granular para exclusão
-    if (requestingUserType === 'Admin') {
-      // Admin pode deletar qualquer um (com as verificações abaixo)
-    } else if (requestingUserType === 'Instrutor') {
-      if (user.id === requestingUserId) { // Instrutor não pode deletar a si mesmo (se tiver alunos, etc.)
-        throw new AppError('Instrutores não podem deletar suas próprias contas diretamente através desta API, especialmente se tiverem alunos ou planos associados. Contate um administrador.', 403);
-      }
-      if (user.tipo === 'Aluno') {
-        const studentProfile = await studentProfileModel.findByUserId(user.id);
-        if (studentProfile && studentProfile.instructor_id === requestingUserId) {
-          // Instrutor pode deletar seus alunos
-        } else {
-          throw new AppError('Você não tem permissão para deletar este aluno.', 403);
-        }
-      } else {
-        throw new AppError('Você não tem permissão para deletar este tipo de usuário.', 403);
-      }
-    } else if (requestingUserType === 'Aluno') {
-      if (user.id === requestingUserId) { // Aluno pode deletar a si mesmo
-        // Permitir que o aluno se delete
-      } else {
-        throw new AppError('Você não tem permissão para deletar este usuário.', 403);
-      }
-    } else {
+    // Verificação de permissão
+    const isAdmin = requestingUser.tipo === 'Admin';
+    const isOwner = requestingUser.id === targetUser.id;
+    const isMyStudent = requestingUser.tipo === 'Instrutor' &&
+                        targetUser.tipo === 'Aluno' &&
+                        isInstructorOfStudent(requestingUser.id, targetUser.id);
+
+    if (!isAdmin && !isOwner && !isMyStudent) {
       throw new AppError('Você não tem permissão para deletar este usuário.', 403);
     }
 
-    // **Verificações de vinculação antes da exclusão (simulando FKs)**
-    // Checar planos de treino associados
-    const hasWorkoutPlans = database.workoutPlans.some(
-      (plan) => plan.student_id === id || plan.instructor_id === id
-    );
+    // Regra: Não permitir que instrutores ou alunos deletem Admins
+    if (targetUser.tipo === 'Admin' && !isAdmin) {
+      throw new AppError('Você não tem permissão para deletar este tipo de usuário.', 403);
+    }
+
+    // Verificação de vínculos antes da deleção
+    const hasWorkoutPlans = database.workoutPlans.some(plan => plan.student_id === targetId || plan.instructor_id === targetId);
     if (hasWorkoutPlans) {
       throw new AppError('Não é possível remover o usuário: existem planos de treino associados. Desvincule ou inative-o primeiro.', 400);
     }
 
-    // Checar sessões de treino associadas
-    const hasSessions = database.sessions.some((session) => session.student_id === id);
+    const hasSessions = database.sessions.some(session => session.student_id === targetId);
     if (hasSessions) {
       throw new AppError('Não é possível remover o usuário: existem sessões de treino associadas. Desvincule ou inative-o primeiro.', 400);
     }
 
-    // Se tudo ok, remover perfil e depois o usuário
-    if (user.tipo === 'Aluno') {
-      await studentProfileModel.remove(user.id);
-    } else if (user.tipo === 'Instrutor') {
-      await instructorProfileModel.remove(user.id);
+    // Deleção do perfil
+    if (targetUser.tipo === 'Aluno') {
+      database.studentProfiles = database.studentProfiles.filter(p => p.user_id !== targetId);
+    } else if (targetUser.tipo === 'Instrutor') {
+      database.instructorProfiles = database.instructorProfiles.filter(p => p.user_id !== targetId);
     }
 
-    await userModel.remove(user.id);
-  },
+    // Deleção do usuário
+    await userModel.remove(targetId);
+  }
 };
 
 export { userService };

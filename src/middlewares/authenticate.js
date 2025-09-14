@@ -2,6 +2,7 @@
 import { verifyToken } from '../utils/jwtUtils.js';
 import { AppError } from '../utils/AppError.js';
 import { userModel } from '../models/userModel.js'; // Importa o userModel
+import logger from '../config/logger.js';
 
 const authenticate = async (req, res, next) => {
   try {
@@ -42,10 +43,10 @@ const authorize = (...roles) => {
   return (req, res, next) => {
     // Flatten roles array in case it's nested
     const allowedRoles = roles.flat();
-    console.log('[DEBUG][authorize] req.user.tipo:', req.user && req.user.tipo, 'Allowed roles:', allowedRoles);
+    logger.debug(`[authorize] User Type: ${req.user?.tipo} | Allowed Roles: ${allowedRoles.join(', ')}`);
     if (!req.user || !allowedRoles.includes(req.user.tipo)) {
-      console.log('[DEBUG][authorize] Permission denied for tipo:', req.user && req.user.tipo);
-      return next(new AppError('Você não tem permissão para realizar esta ação.', 403));
+      logger.warn(`[authorize] Permission denied for user type: ${req.user?.tipo}`);
+      return next(new AppError('Você não tem permissão para realizar esta ação.', 403, 'Role not allowed'));
     }
     next();
   };

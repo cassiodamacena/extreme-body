@@ -1,20 +1,23 @@
 import request from 'supertest';
 import app from '../../app.js';
 import { database } from '../../models/inMemoryDB.js';
-import { hashPassword } from '../../utils/passwordUtils.js';
 
 describe('Auth API', () => {
-  let adminUser, instrutorUser, alunoUser;
+  let initialDatabaseState;
+  const adminUser = database.users.find(u => u.tipo === 'Admin');
+  const instrutorUser = database.users.find(u => u.tipo === 'Instrutor');
+  const alunoUser = database.users.find(u => u.id === 3); // Aluno João
 
-  beforeAll(async () => {
-    // Garante que as senhas estejam corretamente hasheadas
-    database.users.forEach(async (user) => {
-      if (!user.senha_hash || user.senha_hash.startsWith('$2a$')) return;
-      user.senha_hash = await hashPassword(user.senha_hash);
+  beforeEach(() => {
+    // Salva o estado inicial do banco de dados antes de cada teste
+    initialDatabaseState = JSON.parse(JSON.stringify(database));
+  });
+
+  afterEach(() => {
+    // Restaura TODAS as tabelas para o estado inicial para garantir isolamento total dos testes.
+    Object.keys(initialDatabaseState).forEach(key => {
+      database[key] = JSON.parse(JSON.stringify(initialDatabaseState[key]));
     });
-    adminUser = database.users.find(u => u.tipo === 'Admin');
-    instrutorUser = database.users.find(u => u.tipo === 'Instrutor');
-    alunoUser = database.users.find(u => u.tipo === 'Aluno');
   });
 
   it('should login with valid Admin credentials (email)', async () => {
@@ -64,14 +67,15 @@ describe('Auth API', () => {
 
   it('should fail login for inactive user', async () => {
     // Torna o aluno inativo
-    alunoUser.status = 'Inativo';
+    const userToDeactivate = database.users.find(u => u.id === alunoUser.id);
+    userToDeactivate.status = 'Inativo';
+
     const res = await request(app)
       .post('/api/v1/auth/login')
       .send({ documentoOuEmail: alunoUser.email, senha: 'senhaAluno123!' });
     expect(res.statusCode).toEqual(401);
     expect(res.body.status).toEqual('error');
     expect(res.body.message).toContain('inativa');
-    alunoUser.status = 'Ativo'; // Restaura
   });
 
   it('should fail login with missing fields', async () => {

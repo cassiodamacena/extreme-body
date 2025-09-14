@@ -55,11 +55,9 @@ const userModel = {
 
   async findById(id) {
   const user = database.users.find(u => u.id === id);
-  console.log('[DEBUG] findById called with id:', id, 'Found:', user);
   if (!user) return null;
   // Retorna o usuário sem o hash da senha
   const { senha_hash, ...userWithoutPassword } = user;
-  console.log('[DEBUG] Returning userWithoutPassword:', userWithoutPassword);
   return userWithoutPassword;
   },
 

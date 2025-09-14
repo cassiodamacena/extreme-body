@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { errorHandler } from './middlewares/errorHandler.js';
+import logger from './config/logger.js'; // Importa o logger Winston
 import userManagementRoutes from './routes/userManagementRoutes.js'; // Importe a nova rota
 import authRoutes from './routes/authRoutes.js';
 
@@ -50,7 +51,11 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 // Middlewares essenciais de segurança e logging
 app.use(express.json()); // Permite que o Express leia JSON do corpo da requisição
 app.use(express.urlencoded({ extended: true })); // Permite que o Express leia dados de formulário
-app.use(morgan('dev')); // Logging de requisições no console
+
+// Integra o Morgan com o Winston. Todas as requisições HTTP serão logadas nos arquivos.
+// Usamos o formato 'combined' para logs mais detalhados nos arquivos.
+app.use(morgan('combined', { stream: logger.stream }));
+
 app.use(helmet()); // Proteção contra vulnerabilidades de cabeçalho HTTP
 app.use(cors()); // Habilita CORS para todas as origens (ajustar em produção)
 
