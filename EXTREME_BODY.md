@@ -8,7 +8,32 @@ Este documento serve como a fonte única da verdade para todas as regras de neg�
 
 ## 2. Requisitos de Sistema
 
-### 6.1. Requisitos Funcionais
+### 2.1. Requisitos Funcionais
+
+1.  **RF001 - Gestão de Usuários e Perfis:** O sistema deve permitir o gerenciamento completo de usuários e seus perfis associados.
+    *   RF001.1 - `Admins` devem poder criar, visualizar, atualizar e deletar qualquer tipo de usuário (`Admin`, `Instrutor`, `Aluno`).
+    *   RF001.2 - `Instrutores` devem poder criar e gerenciar seus `Alunos` associados.
+    *   RF001.3 - Usuários (`Instrutor`, `Aluno`) devem poder visualizar e atualizar seus próprios dados, com restrições (ex: não podem alterar seu próprio `tipo` ou `status`).
+    *   RF001.4 - A criação de um `Aluno` requer um `StudentProfile` (perfil de aluno), e a criação de um `Instrutor` requer um `InstructorProfile` (perfil de instrutor).
+
+2.  **RF002 - Autenticação de Usuários:** O sistema deve fornecer um meio seguro para os usuários se autenticarem.
+    *   RF002.1 - Um endpoint de `login` deve aceitar `email` e `senha` e, em caso de sucesso, retornar um token de acesso (JWT).
+
+3.  **RF003 - Autorização baseada em Papéis:** O acesso aos recursos da API deve ser restrito com base no tipo de usuário (`Admin`, `Instrutor`, `Aluno`).
+    *   RF003.1 - Endpoints devem ser protegidos, exigindo um token JWT válido.
+    *   RF003.2 - A lógica de negócio deve aplicar regras de permissão granulares (ex: um `Instrutor` só pode ver os planos de seus próprios alunos).
+
+4.  **RF004 - Gestão de Catálogos de Treino:** O sistema deve permitir o gerenciamento dos catálogos de `Exercícios` e `Modificadores de Set`.
+    *   RF004.1 - `Admins` e `Instrutores` devem poder criar, atualizar e visualizar `Exercícios` e `Modificadores`.
+    *   RF004.2 - A exclusão de um item do catálogo só deve ser permitida se ele não estiver vinculado a nenhum `Plano de Treino` ou `Execução` existente, garantindo a integridade dos dados.
+
+5.  **RF005 - Gestão de Planos de Treino:** O sistema deve permitir a criação e o gerenciamento de planos de treino detalhados.
+    *   RF005.1 - `Admins` e `Instrutores` podem criar planos, associando um `Aluno`, um `Instrutor`, e uma lista de `Exercícios` com metas específicas (séries, repetições, carga).
+    *   RF005.2 - A visualização e edição de planos devem seguir regras de autorização (ex: `Aluno` só pode ver seu próprio plano).
+
+6.  **RF006 - Registro de Sessões de Treino:** O sistema deve permitir o registro do que foi efetivamente realizado em um treino.
+    *   RF006.1 - `Alunos` (ou `Instrutores`/`Admins` em seu nome) podem registrar uma `Sessão`, contendo uma ou mais `Execuções` de exercícios.
+    *   RF006.2 - Cada `Execução` deve detalhar o desempenho real (séries completadas, repetições, carga utilizada).
 
 7.  **RF007 - Visualização de Histórico de Treino:** O sistema deve permitir que usuários autorizados visualizem o histórico de treinos e os detalhes de sessões anteriores de forma enriquecida.
     *   RF007.1 - Exibir uma lista de todas as sessões registradas pelo usuário (Aluno) ou por seus alunos (Instrutor), incluindo a data da sessão, o plano de treino associado (se houver) e um resumo das execuções. A lista deve ser passível de filtros por aluno, plano de treino ou data.
@@ -20,9 +45,12 @@ Este documento serve como a fonte única da verdade para todas as regras de neg�
 
 ## 3. Modelo de Dados (Diagrama de Entidade-Relacionamento - ERD)
 
-### Visão Geral
+### 3.1. Visão Geral
 O modelo de dados relacional abaixo é a base para o armazenamento persistente da aplicação. Ele é inicialmente implementado em memória (`inMemoryDB.js`), mas reflete a estrutura de um banco de dados relacional para facilitar futuras migrações.
 
+> **Nota de Implementação:** No modelo em memória, as tabelas de junção (muitos-para-muitos) como `WORKOUT_PLAN_ITEM_MODIFIER` e `EXECUTION_MODIFIER` são simplificadas como arrays de IDs (`modifier_ids`) dentro das entidades `WORKOUT_PLAN_ITEM` e `EXECUTION`, respectivamente. Da mesma forma, `WORKOUT_PLAN_ITEM` é implementado como um array aninhado `items` dentro de `WORKOUT_PLAN`, e `EXECUTION` como um array `executions` dentro de `SESSION`.
+
+### 3.2. Diagrama ER
 ```mermaid
 erDiagram
     USER {

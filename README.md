@@ -29,6 +29,19 @@ Este é o backend para o sistema de gestão de treinos de academia.
 
 A documentação interativa da API (Swagger UI) estará disponível em `/api-docs` quando o servidor estiver rodando.
 
+## Principais Funcionalidades
+
+A API oferece um conjunto completo de funcionalidades para a gestão de uma academia, incluindo:
+
+- **Gerenciamento de Usuários:** CRUD completo para `Admins`, `Instrutores` e `Alunos`, com perfis distintos e regras de permissão granulares.
+- **Autenticação e Autorização:** Sistema seguro baseado em JSON Web Tokens (JWT) e papéis (roles) para proteger os endpoints.
+- **Catálogos de Treino:** Gerenciamento centralizado de `Exercícios` e `Modificadores de Set` (ex: Drop Set, Warm Up), formando a base para a criação de treinos.
+- **Planos de Treino:** Criação e gestão de planos de treino detalhados, associando alunos a instrutores, exercícios, séries, repetições e cargas sugeridas.
+- **Registro de Sessões:** Permite que alunos (ou instrutores em seu nome) registrem as sessões de treino realizadas, capturando o desempenho real (cargas, repetições) em cada exercício.
+- **Histórico de Treino:** Endpoints que fornecem um histórico completo e detalhado das sessões de treino, com todos os dados relacionados (aluno, plano, exercício, etc.) já populados para fácil consumo pelo frontend.
+- **Testes de Integração:** Cobertura de testes robusta utilizando Jest e Supertest para garantir a confiabilidade e a estabilidade da API.
+- **Documentação Automatizada:** Geração automática de documentação interativa da API com Swagger (OpenAPI).
+
 ## Estrutura de Diretórios
 
 ```

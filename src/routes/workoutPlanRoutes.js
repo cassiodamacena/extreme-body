@@ -283,7 +283,7 @@ router.route('/')
  */
 router.route('/:id')
   .get(authenticate, validate({ params: Joi.object({ id: Joi.number().integer().positive().required() }) }), workoutPlanController.getWorkoutPlanById)
-  .put(authenticate, authorize(['Admin', 'Instrutor']), validate({ params: Joi.object({ id: Joi.number().integer().positive().required() }), body: updateWorkoutPlanSchema }), workoutPlanController.updateWorkoutPlan)
-  .delete(authenticate, authorize(['Admin', 'Instrutor']), validate({ params: Joi.object({ id: Joi.number().integer().positive().required() }) }), workoutPlanController.deleteWorkoutPlan);
+  .put(authenticate, validate({ params: Joi.object({ id: Joi.number().integer().positive().required() }), body: updateWorkoutPlanSchema }), workoutPlanController.updateWorkoutPlan)
+  .delete(authenticate, validate({ params: Joi.object({ id: Joi.number().integer().positive().required() }) }), workoutPlanController.deleteWorkoutPlan);
 
 export default router;
