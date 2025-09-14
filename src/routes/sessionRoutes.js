@@ -195,20 +195,61 @@ const updateSessionSchema = Joi.object({
  *     security: [{ bearerAuth: [] }]
  *     requestBody:
  *       required: true
- *       content: { "application/json": { schema: { $ref: '#/components/schemas/SessionCreate' } } }
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SessionCreate'
  *     responses:
- *       '201': { description: "Sessão de treino registrada com sucesso." }
+ *       '201':
+ *         description: Sessão de treino registrada com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     session:
+ *                       $ref: '#/components/schemas/SessionResponse'
+ *       '400': { $ref: '#/components/responses/BadRequest' }
+ *       '401': { $ref: '#/components/responses/Unauthorized' }
+ *       '403': { $ref: '#/components/responses/Forbidden' }
  *   get:
  *     tags: [Session Management]
- *     summary: Lista todas as sessões de treino (com base na autorização)
- *     description: Admin vê todas; Instrutor vê as de seus alunos; Aluno vê apenas as suas. Inclui detalhes das execuções e exercícios.
+ *     summary: Lista o histórico de sessões de treino (com base na autorização)
+ *     description: Retorna uma lista de todas as sessões de treino que o usuário tem permissão para visualizar. Admin vê todas; Instrutor vê as de seus alunos; Aluno vê apenas as suas. As sessões retornadas incluem detalhes completos das execuções e informações de exercícios e modificadores, servindo como um histórico detalhado.
  *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - { in: query, name: student_id, schema: { type: integer }, description: "Filtrar sessões por ID do aluno." }
  *       - { in: query, name: workout_plan_id, schema: { type: integer }, description: "Filtrar sessões por ID do plano de treino." }
  *       - { in: query, name: session_date, schema: { type: string, format: date }, description: "Filtrar sessões por data." }
  *     responses:
- *       '200': { description: "Lista de sessões de treino recuperada com sucesso." }
+ *       '200':
+ *         description: Histórico de sessões de treino recuperado com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 results:
+ *                   type: integer
+ *                   example: 2
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     sessions:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/SessionResponse'
+ *       '401': { $ref: '#/components/responses/Unauthorized' }
+ *       '403': { $ref: '#/components/responses/Forbidden' }
  */
 router.route('/')
   .post(authenticate, authorize(['Aluno', 'Admin', 'Instrutor']), validate(createSessionSchema), sessionController.createSession)
@@ -219,13 +260,30 @@ router.route('/')
  * /api/v1/sessions/{id}:
  *   get:
  *     tags: [Session Management]
- *     summary: Obtém uma sessão de treino por ID
- *     description: Usuários autorizados podem visualizar uma sessão específica.
+ *     summary: Obtém os detalhes de uma sessão de treino específica por ID
+ *     description: Retorna os detalhes completos de uma sessão de treino específica, incluindo todas as execuções de exercícios com seus detalhes (exercício, séries, repetições, carga, observações e modificadores), informações do aluno e do plano de treino associado.
  *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - { in: path, name: id, required: true, schema: { type: integer }, description: "ID da sessão de treino." }
  *     responses:
- *       '200': { description: "Sessão de treino recuperada com sucesso." }
+ *       '200':
+ *         description: Detalhes da sessão de treino recuperados com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     session:
+ *                       $ref: '#/components/schemas/SessionResponse'
+ *       '401': { $ref: '#/components/responses/Unauthorized' }
+ *       '403': { $ref: '#/components/responses/Forbidden' }
+ *       '404': { $ref: '#/components/responses/NotFound' }
  *   put:
  *     tags: [Session Management]
  *     summary: Atualiza uma sessão de treino por ID
@@ -235,9 +293,30 @@ router.route('/')
  *       - { in: path, name: id, required: true, schema: { type: integer }, description: "ID da sessão de treino." }
  *     requestBody:
  *       required: true
- *       content: { "application/json": { schema: { $ref: '#/components/schemas/SessionUpdate' } } }
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SessionUpdate'
  *     responses:
- *       '200': { description: "Sessão de treino atualizada com sucesso." }
+ *       '200':
+ *         description: Sessão de treino atualizada com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     session:
+ *                       $ref: '#/components/schemas/SessionResponse'
+ *       '400': { $ref: '#/components/responses/BadRequest' }
+ *       '401': { $ref: '#/components/responses/Unauthorized' }
+ *       '403': { $ref: '#/components/responses/Forbidden' }
+ *       '404': { $ref: '#/components/responses/NotFound' }
  *   delete:
  *     tags: [Session Management]
  *     summary: Deleta uma sessão de treino por ID
@@ -247,6 +326,9 @@ router.route('/')
  *       - { in: path, name: id, required: true, schema: { type: integer }, description: "ID da sessão de treino." }
  *     responses:
  *       '204': { description: "Sessão de treino deletada com sucesso." }
+ *       '401': { $ref: '#/components/responses/Unauthorized' }
+ *       '403': { $ref: '#/components/responses/Forbidden' }
+ *       '404': { $ref: '#/components/responses/NotFound' }
  */
 router.route('/:id')
   .get(authenticate, validate({ params: Joi.object({ id: Joi.number().integer().positive().required() }) }), sessionController.getSessionById)

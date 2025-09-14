@@ -8,7 +8,15 @@ Este documento serve como a fonte única da verdade para todas as regras de neg�
 
 ## 2. Requisitos de Sistema
 
-(Conteúdo da seção 6 "Requisitos de Sistema" da documentação do projeto revisada)
+### 6.1. Requisitos Funcionais
+
+7.  **RF007 - Visualização de Histórico de Treino:** O sistema deve permitir que usuários autorizados visualizem o histórico de treinos e os detalhes de sessões anteriores de forma enriquecida.
+    *   RF007.1 - Exibir uma lista de todas as sessões registradas pelo usuário (Aluno) ou por seus alunos (Instrutor), incluindo a data da sessão, o plano de treino associado (se houver) e um resumo das execuções. A lista deve ser passível de filtros por aluno, plano de treino ou data.
+    *   RF007.2 - Ao selecionar uma sessão, exibir os detalhes completos, incluindo:
+        *   Informações do `Aluno` que realizou a sessão.
+        *   Informações do `Plano de Treino` associado (se houver), incluindo o `Instrutor` responsável.
+        *   Para cada `Execução de Exercício`: o `Exercício` completo (do catálogo), as `séries`, `repetições` e `carga` efetivas, `observações` e os `Modificadores de Set` completos aplicados.
+    *   RF007.3 - A visualização do histórico deve respeitar as regras de autorização: `Admin` pode visualizar o histórico de qualquer `Aluno`; `Instrutor` pode visualizar o histórico de seus `Alunos`; `Aluno` pode visualizar apenas o seu próprio histórico.
 
 ## 3. Modelo de Dados (Diagrama de Entidade-Relacionamento - ERD)
 

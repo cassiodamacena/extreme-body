@@ -20,7 +20,11 @@ const populateSessionDetails = async (session) => {
   }
 
   if (session.workout_plan_id) {
-    session.workoutPlan = await workoutPlanModel.findById(session.workout_plan_id);
+    const plan = await workoutPlanModel.findById(session.workout_plan_id);
+    if (plan) {
+      plan.instructor = await userModel.findById(plan.instructor_id);
+    }
+    session.workoutPlan = plan;
   }
 
   if (session.executions && Array.isArray(session.executions)) {

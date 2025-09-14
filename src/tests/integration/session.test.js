@@ -81,13 +81,17 @@ describe('Session API', () => {
   });
 
   describe('GET /api/v1/sessions', () => {
-    it('should allow Admin to get all sessions', async () => {
+    it('should allow Admin to get all sessions with populated data', async () => {
       const res = await request(app)
         .get('/api/v1/sessions')
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.statusCode).toEqual(200);
       expect(res.body.results).toBe(database.sessions.length);
+      const firstSession = res.body.data.sessions.find(s => s.id === 1);
+      expect(firstSession.student.nome_completo).toEqual('Aluno João');
+      expect(firstSession.executions[0].exercise.name).toEqual('Supino Reto com Barra');
+      expect(firstSession.workoutPlan.instructor.nome_completo).toEqual('Instrutor Flávio');
     });
 
     it('should allow Instrutor to get sessions of their students', async () => {
@@ -120,6 +124,17 @@ describe('Session API', () => {
         expect(res.body.results).toEqual(1);
         expect(res.body.data.sessions[0].student_id).toEqual(4);
       });
+
+    it('should filter sessions by session_date', async () => {
+        const res = await request(app)
+          .get('/api/v1/sessions?session_date=2024-05-16') // Filtrar por data da sessão de Maria
+          .set('Authorization', `Bearer ${adminToken}`);
+  
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.results).toEqual(1);
+        expect(res.body.data.sessions[0].id).toEqual(2); // Session ID 2
+        expect(res.body.data.sessions[0].student_id).toEqual(4); // Aluno Maria
+      });
   });
 
   describe('GET /api/v1/sessions/:id', () => {
@@ -133,6 +148,8 @@ describe('Session API', () => {
       expect(session.id).toEqual(1);
       expect(session.student.nome_completo).toEqual('Aluno João');
       expect(session.executions[0].exercise.name).toEqual('Supino Reto com Barra');
+      expect(session.workoutPlan.instructor.nome_completo).toEqual('Instrutor Flávio');
+      expect(session.executions[0].modifiers[0].name).toEqual('Work Set');
     });
 
     it('should return 404 for non-existent session', async () => {
