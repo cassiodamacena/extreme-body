@@ -9,6 +9,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import { errorHandler } from './middlewares/errorHandler.js';
 import logger from './config/logger.js'; // Importa o logger Winston
 import userManagementRoutes from './routes/userManagementRoutes.js'; // Importe a nova rota
+import exerciseRoutes from './routes/exerciseRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 
 const app = express();
@@ -73,6 +74,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Rotas da API
 app.use('/api/v1/users-management', userManagementRoutes); // Adicione a nova rota de gerenciamento de usuários
+app.use('/api/v1/exercises', exerciseRoutes);
 app.use('/api/v1/auth', authRoutes); // Adicione a rota de autenticação
 
 // Middleware para rotas não encontradas (404)
