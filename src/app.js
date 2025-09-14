@@ -1,3 +1,4 @@
+
 import express from 'express';
 import morgan from 'morgan';
 import helmet from 'helmet';
@@ -6,6 +7,8 @@ import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { errorHandler } from './middlewares/errorHandler.js';
+import userManagementRoutes from './routes/userManagementRoutes.js'; // Importe a nova rota
+import authRoutes from './routes/authRoutes.js';
 
 const app = express();
 
@@ -20,7 +23,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${process.env.PORT || 3000}/api/v1`,
+        url: `http://localhost:${process.env.PORT || 3000}`,
         description: 'Development Server',
       },
     ],
@@ -62,8 +65,10 @@ app.use(apiLimiter);
 // Documentação da API
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Rotas (serão adicionadas aqui posteriormente)
-// Ex: app.use('/api/v1/auth', authRoutes);
+
+// Rotas da API
+app.use('/api/v1/users-management', userManagementRoutes); // Adicione a nova rota de gerenciamento de usuários
+app.use('/api/v1/auth', authRoutes); // Adicione a rota de autenticação
 
 // Middleware para rotas não encontradas (404)
 app.all('*', (req, res, next) => {

@@ -8,14 +8,23 @@ const validate = (schema) => (req, res, next) => {
     stripUnknown: true, // Remover chaves não definidas
   };
 
-  const { error, value } = schema.validate(
-    {
+  // Se o schema tem keys body/params/query, valida objeto aninhado; senão, valida req.body direto
+  let validationTarget;
+  const schemaKeys = Object.keys(schema.describe().keys || {});
+  if (schemaKeys.length === 1 && schemaKeys[0] === 'id') {
+    // Caso especial: validação de params apenas (ex: GET /:id)
+    validationTarget = req.params;
+  } else if (schemaKeys.includes('body') || schemaKeys.includes('params') || schemaKeys.includes('query')) {
+    validationTarget = {
       body: req.body,
       params: req.params,
       query: req.query,
-    },
-    validationOptions
-  );
+    };
+  } else {
+    validationTarget = req.body;
+  }
+
+  const { error, value } = schema.validate(validationTarget, validationOptions);
 
   if (error) {
     const errorMessage = error.details
