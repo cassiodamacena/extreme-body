@@ -34,16 +34,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-report-unit
-          path: test-report-unit.html
+          path: reports/test-report-unit.html
 
       - name: Exportar relatório de integração
         uses: actions/upload-artifact@v4
         with:
           name: test-report-integration
-          path: test-report-integration.html
+          path: reports/test-report-integration.html
 
       - name: Exportar relatório e2e
         uses: actions/upload-artifact@v4
         with:
           name: test-report-e2e
-          path: test-report-e2e.html
+          path: reports/test-report-e2e.html
