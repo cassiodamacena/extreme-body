@@ -7,11 +7,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --runInBand",
-    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/unit",
-    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/integration",
-    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/e2e"
+    "test:unit": "copy /Y jesthtmlreporter-unit.config.json jesthtmlreporter.config.json && node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/unit --reporters=default --reporters=jest-html-reporter && del jesthtmlreporter.config.json",
+    "test:integration": "copy /Y jesthtmlreporter-integration.config.json jesthtmlreporter.config.json && node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/integration --reporters=default --reporters=jest-html-reporter && del jesthtmlreporter.config.json",
+    "test:e2e": "copy /Y jesthtmlreporter-e2e.config.json jesthtmlreporter.config.json && node --experimental-vm-modules node_modules/jest/bin/jest.js src/tests/e2e --reporters=default --reporters=jest-html-reporter && del jesthtmlreporter.config.json"
   },
   "keywords": [],
   "author": "",
