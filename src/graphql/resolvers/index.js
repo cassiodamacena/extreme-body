@@ -1,4 +1,3 @@
-
 import { AuthenticationError, ForbiddenError } from 'apollo-server-express';
 import { authService } from '../../services/authService.js';
 import { userService } from '../../services/userService.js';
@@ -76,9 +75,14 @@ export const resolvers = {
 
     // User
     createUser: async (_, { input }) => {
-      const { studentProfile, instructorProfile, ...userData } = input;
-      const profileData = studentProfile || instructorProfile;
-      return userService.createUser(userData, profileData, input.tipo);
+      try {
+        const { studentProfile, instructorProfile, ...userData } = input;
+        const profileData = studentProfile || instructorProfile;
+        return userService.createUser(userData, profileData, input.tipo);
+      } catch (error) {
+        console.error("Erro no resolver createUser:", error); // Log do erro
+        throw error; // Re-lança o erro para o GraphQL
+      }
     },
     updateUser: async (_, { id, input }, context) => {
       if (!context.user) throw new AuthenticationError('You must be logged in.');
@@ -157,7 +161,7 @@ export const resolvers = {
       if (!context.user) throw new AuthenticationError('You must be logged in.');
       return sessionService.createSession(input, context.user);
     },
-    updateSession: async (_, { id, input }, context) => {
+    updateSession: async (_, { id }, context) => {
       if (!context.user) throw new AuthenticationError('You must be logged in.');
       return sessionService.updateSession(parseInt(id), input, context.user);
     },
@@ -194,5 +198,3 @@ export const resolvers = {
     }
   }
 };
-
-

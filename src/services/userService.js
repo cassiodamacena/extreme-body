@@ -27,6 +27,7 @@ const isInstructorOfStudent = (instructorId, studentId) => {
 
 const userService = {
   async createUser(userData, profileData, userType) {
+    // console.log('userService.createUser chamado com:', { userData, profileData, userType }); // Removido para depuração
     const newUser = await userModel.create({ ...userData, tipo: userType });
 
     if (userType === 'Aluno') {

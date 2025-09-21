@@ -17,7 +17,7 @@ Este documento serve como a fonte única da verdade para todas as regras de neg�
     *   RF001.4 - A criação de um `Aluno` requer um `StudentProfile` (perfil de aluno), e a criação de um `Instrutor` requer um `InstructorProfile` (perfil de instrutor).
 
 2.  **RF002 - Autenticação de Usuários:** O sistema deve fornecer um meio seguro para os usuários se autenticarem.
-    *   RF002.1 - Um endpoint de `login` deve aceitar `email` e `senha` e, em caso de sucesso, retornar um token de acesso (JWT).
+    *   RF002.1 - Um endpoint de `login` deve aceitar `email` e `password` e, em caso de sucesso, retornar um token de acesso (JWT).
 
 3.  **RF003 - Autorização baseada em Papéis:** O acesso aos recursos da API deve ser restrito com base no tipo de usuário (`Admin`, `Instrutor`, `Aluno`).
     *   RF003.1 - Endpoints devem ser protegidos, exigindo um token JWT válido.

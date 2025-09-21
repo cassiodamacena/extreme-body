@@ -10,7 +10,7 @@ const userBaseSchema = Joi.object({
   documento: Joi.string().pattern(/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}$/).required(), // Ex: 123.456.789-00
   nome_completo: Joi.string().min(3).max(100).required(),
   email: Joi.string().email().required(),
-  senha: Joi.string().min(8).required(),
+  password: Joi.string().min(8).required(),
 });
 
 const studentProfileSchema = Joi.object({
@@ -46,7 +46,7 @@ const updateUserSchema = Joi.object({
     documento: Joi.string().pattern(/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}$/),
     nome_completo: Joi.string().min(3).max(100),
     email: Joi.string().email(),
-    senha: Joi.string().min(8),
+    password: Joi.string().min(8),
     status: Joi.string().valid('Ativo', 'Inativo'),
   }).optional(),
   profile_data: Joi.object().unknown(true).optional(), // Permite qualquer campo dentro do profile_data

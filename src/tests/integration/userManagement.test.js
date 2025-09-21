@@ -51,7 +51,7 @@ describe('User Management API', () => {
             documento: '555.555.555-55',
             nome_completo: 'Novo Aluno Teste',
             email: 'novoaluno@test.com',
-            senha: 'SenhaSegura123!',
+            password: 'SenhaSegura123!', // Alterado de 'senha' para 'password'
           },
           profile_data: {
             height: 180,
@@ -77,7 +77,7 @@ describe('User Management API', () => {
             documento: '666.666.666-66',
             nome_completo: 'Aluno do Instrutor',
             email: 'aluno.instrutor@test.com',
-            senha: 'SenhaSegura123!',
+            password: 'SenhaSegura123!', // Alterado de 'senha' para 'password'
           },
           profile_data: {
             height: 170,
@@ -100,7 +100,7 @@ describe('User Management API', () => {
             documento: '777.777.777-77',
             nome_completo: 'Aluno Criando Aluno',
             email: 'aluno.criando@test.com',
-            senha: 'SenhaSegura123!',
+            password: 'SenhaSegura123!', // Alterado de 'senha' para 'password'
           },
           profile_data: {
             height: 160,
@@ -121,7 +121,7 @@ describe('User Management API', () => {
             documento: 'invalid-doc', // Invalid documento
             nome_completo: 'Aluno Inválido',
             email: 'invalido@test.com',
-            senha: 'short', // Invalid senha
+            password: 'short', // Invalid password
           },
           profile_data: {
             height: 300, // Invalid height
@@ -141,7 +141,7 @@ describe('User Management API', () => {
             documento: '333.333.333-33', // Documento já existente do Aluno João
             nome_completo: 'Duplicate Student',
             email: 'duplicate@test.com',
-            senha: 'SenhaSegura123!',
+            password: 'SenhaSegura123!', // Alterado de 'senha' para 'password'
           },
           profile_data: {
             height: 170,
@@ -164,7 +164,7 @@ describe('User Management API', () => {
             documento: '888.888.888-88',
             nome_completo: 'Instrutor Teste',
             email: 'instrutor.novo@test.com',
-            senha: 'SenhaSegura123!',
+            password: 'SenhaSegura123!', // Alterado de 'senha' para 'password'
           },
           profile_data: {
             cref: '987654-G/RJ',
@@ -188,7 +188,7 @@ describe('User Management API', () => {
             documento: '999.999.999-99',
             nome_completo: 'Instrutor Criando Instrutor',
             email: 'instrutor.criando@test.com',
-            senha: 'SenhaSegura123!',
+            password: 'SenhaSegura123!', // Alterado de 'senha' para 'password'
           },
           profile_data: {
             cref: '111222-G/MG',
@@ -207,7 +207,7 @@ describe('User Management API', () => {
             documento: '000.000.000-00',
             nome_completo: 'Instrutor Sem CREF',
             email: 'instrutor.semcref@test.com',
-            senha: 'SenhaSegura123!',
+            password: 'SenhaSegura123!', // Alterado de 'senha' para 'password'
           },
           profile_data: {
             specialization: 'Yoga',
@@ -399,7 +399,7 @@ describe('User Management API', () => {
     });
 
     it('should return 403 if Instrutor tries to update another Instrutor', async () => {
-      const otherInstrutor = { id: 5, tipo: 'Instrutor' };
+      const otherInstrutor = { id: 5, tipo: 'Instrutor' }; // Simular outro instrutor
       database.users.push({ id: 5, documento: '111.222.333-44', nome_completo: 'Instrutor B', email: 'b@i.com', tipo: 'Instrutor', senha_hash: 'hash', status: 'Ativo' });
       database.instructorProfiles.push({ user_id: 5, cref: '111111-G/SP' });
 
@@ -431,7 +431,7 @@ describe('User Management API', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           user_data: {
-            documento: '555.555.555-00', nome_completo: 'Temp Student', email: 'temp@test.com', senha: 'Password123!',
+            documento: '555.555.555-00', nome_completo: 'Temp Student', email: 'temp@test.com', password: 'Password123!',
           },
           profile_data: { height: 170, weight: 60, date_of_birth: '1990-01-01', instructor_id: INSTRUTOR_ID },
         });
@@ -452,7 +452,7 @@ describe('User Management API', () => {
         .set('Authorization', `Bearer ${adminToken}`) // Admin cria para garantir que instrutor 2 tem um aluno
         .send({
           user_data: {
-            documento: '555.555.555-01', nome_completo: 'Temp Student 2', email: 'temp2@test.com', senha: 'Password123!',
+            documento: '555.555.555-01', nome_completo: 'Temp Student 2', email: 'temp2@test.com', password: 'Password123!',
           },
           profile_data: { height: 170, weight: 60, date_of_birth: '1990-01-01', instructor_id: INSTRUTOR_ID }, // Aluno do instrutor 2
         });

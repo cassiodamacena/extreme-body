@@ -4,7 +4,7 @@ import { hashPassword } from '../utils/passwordUtils.js';
 
 const userModel = {
   async create(userData) {
-    const { documento, email, senha, tipo, ...rest } = userData;
+    const { documento, email, password, tipo, ...rest } = userData;
 
     // Verificar unicidade de documento
     const existingUserByDoc = database.users.find(u => u.documento === documento);
@@ -23,7 +23,7 @@ const userModel = {
       documento,
       email,
       tipo,
-      senha_hash: await hashPassword(senha),
+      senha_hash: await hashPassword(password),
       status: 'Ativo', // Default status
       created_at: new Date(),
       updated_at: new Date(),
@@ -33,6 +33,7 @@ const userModel = {
     database.users.push(newUser);
     // Retorna o usuário sem o hash da senha
     const { senha_hash, ...userWithoutPassword } = newUser;
+    // console.log('userModel.create retornou:', userWithoutPassword); // Removido para depuração
     return userWithoutPassword;
   },
 
@@ -98,9 +99,9 @@ const userModel = {
     }
 
     // Hash da nova senha se fornecida
-    if (updateData.senha) {
-      updateData.senha_hash = await hashPassword(updateData.senha);
-      delete updateData.senha; // Remove a senha original
+    if (updateData.password) {
+      updateData.senha_hash = await hashPassword(updateData.password);
+      delete updateData.password; // Remove a senha original
     }
 
     const updatedUser = {

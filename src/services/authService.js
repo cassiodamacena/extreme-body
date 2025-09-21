@@ -4,7 +4,7 @@ import { comparePassword } from '../utils/passwordUtils.js';
 import { generateToken } from '../utils/jwtUtils.js';
 
 const authService = {
-  async loginUser(documentoOuEmail, senha) {
+  async loginUser(documentoOuEmail, password) {
     // Busca por documento ou email
     let user = await userModel.findByEmail(documentoOuEmail);
     if (!user) {
@@ -14,7 +14,7 @@ const authService = {
       throw new AppError('Credenciais inválidas.', 401);
     }
     // Verifica senha
-    const senhaOk = await comparePassword(senha, user.senha_hash);
+    const senhaOk = await comparePassword(password, user.senha_hash);
     if (!senhaOk) {
       throw new AppError('Credenciais inválidas.', 401);
     }

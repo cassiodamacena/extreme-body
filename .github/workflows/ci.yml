@@ -24,17 +24,14 @@ jobs:
       - name: Executar testes unitários
         run: npm run test:unit
 
-      - name: Executar testes de integração
-        run: npm run test:integration
-
-      - name: Executar testes end-to-end (e2e)
-        run: npm run test:e2e
-
       - name: Exportar relatório unitário
         uses: actions/upload-artifact@v4
         with:
           name: test-report-unit
           path: reports/test-report-unit.html
+
+      - name: Executar testes de integração
+        run: npm run test:integration
 
       - name: Exportar relatório de integração
         uses: actions/upload-artifact@v4
@@ -42,8 +39,20 @@ jobs:
           name: test-report-integration
           path: reports/test-report-integration.html
 
+      - name: Executar testes end-to-end (e2e)
+        run: npm run test:e2e
+
       - name: Exportar relatório e2e
         uses: actions/upload-artifact@v4
         with:
           name: test-report-e2e
           path: reports/test-report-e2e.html
+
+      - name: Executar testes GraphQL
+        run: npm run test:graphql
+
+      - name: Exportar relatório GraphQL
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-graphql
+          path: reports/graphql/graphql-report.html
