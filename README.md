@@ -20,21 +20,28 @@ Este é o backend para o sistema de gestão de treinos de academia.
 *   **Modo de Desenvolvimento:** `npm run dev` (com `nodemon`)
 *   **Modo de Produção:** `npm start`
 
-## Testes
 
-O projeto adota uma estratégia de testes em múltiplas camadas para garantir a qualidade e a estabilidade do código:
+## Integração Contínua (CI)
 
-- **Testes Unitários:** Focam em funções e lógicas de negócio isoladas. São rápidos e ideais para validar algoritmos complexos.
-- **Testes de Integração:** Verificam a interação entre as diferentes camadas da aplicação (Controllers, Services, Models) em memória, sem a necessidade de um servidor HTTP real.
-- **Testes End-to-End (E2E):** Simulam o comportamento de um cliente real, iniciando um servidor HTTP e fazendo requisições de rede para validar os fluxos completos da API.
+Este projeto utiliza GitHub Actions para rodar testes automatizados a cada push ou pull request na branch `main`.
 
-### Comandos de Teste
+O workflow de CI executa automaticamente:
 
-*   **Executar todos os testes:** `npm test`
-*   **Executar apenas os testes unitários:** `npm run test:unit`
-*   **Executar apenas os testes de integração:** `npm run test:integration`
-*   **Executar apenas os testes End-to-End:** `npm run test:e2e`
-*   **Executar todos os testes em modo watch:** `npm run test:watch`
+- Testes unitários (`npm run test:unit`)
+- Testes de integração (`npm run test:integration`)
+- Testes end-to-end (E2E) (`npm run test:e2e`)
+
+Basta fazer push ou abrir um PR para a branch principal e o pipeline será executado, garantindo a qualidade do código antes de qualquer merge.
+
+Arquivo do workflow: `.github/workflows/ci.yml`
+
+### Comandos de Teste Locais
+
+- **Executar todos os testes:** `npm test`
+- **Executar apenas os testes unitários:** `npm run test:unit`
+- **Executar apenas os testes de integração:** `npm run test:integration`
+- **Executar apenas os testes End-to-End:** `npm run test:e2e`
+- **Executar todos os testes em modo watch:** `npm run test:watch`
 
 ## Documentação da API
 
