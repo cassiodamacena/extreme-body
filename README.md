@@ -45,12 +45,19 @@ Arquivo do workflow: `.github/workflows/ci.yml`
 
 ## Documentação da API
 
-A documentação interativa da API (Swagger UI) estará disponível em `/api-docs` quando o servidor estiver rodando.
+### API REST (Swagger)
+
+A documentação interativa da API REST (Swagger UI) estará disponível em `/api-docs` quando o servidor estiver rodando.
+
+### API GraphQL
+
+A API GraphQL oferece um endpoint único em `/graphql` que pode ser acessado através de qualquer cliente GraphQL, como o Apollo Studio ou o GraphQL Playground, que é disponibilizado pelo próprio servidor para exploração interativa do schema.
 
 ## Principais Funcionalidades
 
 A API oferece um conjunto completo de funcionalidades para a gestão de uma academia, incluindo:
 
+- **APIs Híbridas (REST e GraphQL):** Oferece tanto uma API REST tradicional para operações de CRUD quanto uma API GraphQL para consultas complexas e flexíveis, permitindo que o frontend busque exatamente os dados de que precisa com uma única requisição.
 - **Gerenciamento de Usuários:** CRUD completo para `Admins`, `Instrutores` e `Alunos`, com perfis distintos e regras de permissão granulares.
 - **Autenticação e Autorização:** Sistema seguro baseado em JSON Web Tokens (JWT) e papéis (roles) para proteger os endpoints.
 - **Catálogos de Treino:** Gerenciamento centralizado de `Exercícios` e `Modificadores de Set` (ex: Drop Set, Warm Up), formando a base para a criação de treinos.
@@ -66,6 +73,9 @@ A API oferece um conjunto completo de funcionalidades para a gestão de uma acad
 ├── src/
 │   ├── config/               # Configurações do projeto
 │   ├── controllers/          # Lógica de manipulação de requisições
+│   ├── graphql/              # Schemas e resolvers do GraphQL
+│   │   ├── schemas/
+│   │   └── resolvers/
 │   ├── middlewares/          # Funções intermediárias (autenticação, autorização, erros)
 │   ├── models/               # Camada de acesso e lógica de dados (in-memory DB)
 │   ├── routes/               # Definição de rotas da API

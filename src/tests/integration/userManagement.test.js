@@ -1,7 +1,13 @@
 import request from 'supertest';
-import app from '../../app.js';
+import { createApp } from '../../app.js';
 import { database } from '../../models/inMemoryDB.js';
 import { generateToken } from '../../utils/jwtUtils.js';
+
+let app;
+
+beforeAll(async () => {
+  app = await createApp();
+});
 
 // IDs dos usuários de teste para clareza
 const ADMIN_ID = 1;

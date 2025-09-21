@@ -1,6 +1,12 @@
 import request from 'supertest';
-import app from '../../app.js';
+import { createApp } from '../../app.js';
 import { database } from '../../models/inMemoryDB.js';
+
+let app;
+
+beforeAll(async () => {
+  app = await createApp();
+});
 
 describe('Auth API', () => {
   let initialDatabaseState;

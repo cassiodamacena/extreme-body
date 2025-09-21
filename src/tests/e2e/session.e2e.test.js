@@ -1,6 +1,6 @@
 import request from 'supertest';
 import http from 'http';
-import app from '../../app.js'; // A aplicação Express
+import { createApp } from '../../app.js'; // A aplicação Express
 import { database } from '../../models/inMemoryDB.js';
 import { generateToken } from '../../utils/jwtUtils.js';
 
@@ -11,6 +11,7 @@ import { generateToken } from '../../utils/jwtUtils.js';
 
 describe('E2E Tests for Session API', () => {
   let server;
+  let app;
   let initialDatabaseState;
 
   // Tokens de teste
@@ -20,8 +21,11 @@ describe('E2E Tests for Session API', () => {
 
   // Inicia o servidor antes de todos os testes neste describe block
   beforeAll((done) => {
-    server = http.createServer(app);
-    server.listen(done); // Inicia em uma porta aleatória disponível
+    createApp().then(newApp => {
+      app = newApp;
+      server = http.createServer(app);
+      server.listen(done);
+    });
   });
 
   // Fecha o servidor após todos os testes
